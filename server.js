@@ -4,7 +4,7 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const PORT = process.env.PORT || 3000;
-const url = process.env.MONGODB_URL || "mongodb://localhost:27017/notes";
+const url = process.env.MONGODB_URI || "mongodb://localhost:27017/notes";
 mongoose.connect(url, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
