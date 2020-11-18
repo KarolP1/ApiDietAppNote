@@ -4,8 +4,8 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const PORT = process.env.PORT || 3000;
-
-mongoose.connect("mongodb://localhost:27017/test", {
+const url = process.env.MONGODB_URI || "mongodb://localhost:27017/notes";
+mongoose.connect(url, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 });
@@ -18,4 +18,4 @@ app.use(express.json());
 const notesRoute = require("./routes/notes.js");
 app.use("/api/notes", notesRoute);
 
-app.listen(PORT, () => console.log("Server Started"));
+app.listen(PORT, () => console.log(`Server Started on port: ${PORT}`));
