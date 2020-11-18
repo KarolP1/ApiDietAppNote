@@ -4,14 +4,11 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const PORT = process.env.PORT || 3000;
-
-mongoose.connect(
-	"mongodb+srv://KarolP:1236914789Mk@cluster0.mgvy8.mongodb.net/notes?retryWrites=true&w=majority",
-	{
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	}
-);
+const url = process.env.MONGODB_URL || "mongodb://localhost:27017/notes";
+mongoose.connect(url, {
+	useNewUrlParser: true,
+	useUnifiedTopology: true,
+});
 const db = mongoose.connection;
 db.on("error", (error) => console.error(error));
 db.once("open", () => console.log("Connected to Database"));
