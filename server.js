@@ -3,8 +3,13 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const cors = require("cors");
+
 const PORT = process.env.PORT || 3000;
 const url = process.env.MONGODB_URI || "mongodb://localhost:27017/notes";
+
+app.use(cors());
+
 mongoose.connect(url, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
