@@ -1,78 +1,91 @@
 const express = require("express");
 const router = express.Router();
-const Notes = require("../models/notes");
+const mongoose = require("mongoose");
+const checkAuth = require("../middleware/check-auth");
 
-// Getting all
-router.get("/", async (req, res) => {
-	try {
-		const notes = await Notes.find();
-		res.json(notes);
-	} catch (err) {
-		res.status(500).json({ message: err.message });
-	}
-});
-
-// Getting One
-router.get("/:id", getNote, (req, res) => {
-	res.json(res.notes);
-});
-
-// Creating one
-router.post("/", async (req, res) => {
-	const notes = new Notes({
+const Note = require("../models/notes");
+//post note
+router.post("/:userID/", checkAuth, (req, res, next) => {
+	const note = new Note({
+		_id: new mongoose.Types.ObjectId(),
 		title: req.body.title,
 		value: req.body.value,
+		owner: req.params.userID,
 	});
-	try {
-		const newNotes = await notes.save();
-		res.status(201).json(newNotes);
-	} catch (err) {
-		res.status(400).json({ message: err.message });
-	}
-});
-
-// Updating One
-router.patch("/:id", getNote, async (req, res) => {
-	if (req.body.title != null) {
-		res.notes.title = req.body.title;
-	}
-	if (req.body.value != null) {
-		res.notes.value = req.body.value;
-	}
-	res.notes.noteDate = Date.now();
-	try {
-		const updatedNotes = await res.notes.save();
-		res.json(updatedNotes);
-	} catch (err) {
-		res.status(400).json({ message: err.message });
-	}
-});
-
-// Deleting One
-router.delete("/:id", getNote, async (req, res) => {
-	try {
-		await res.notes.remove();
-		res.json({ message: "Notatka usunięta" });
-	} catch (err) {
-		res.status(500).json({ message: err.message });
-	}
-});
-
-async function getNote(req, res, next) {
-	let notes;
-	try {
-		notes = await Notes.findById(req.params.id);
-		if (notes == null) {
-			return res.status(404).json({
-				message: "Nie można znaleść notatki... Być może została już usunięta",
+	note
+		.save()
+		.then((result) => {
+			res.status(201).json({
+				message: "Created note successfully",
+				createdNote: {
+					title: result.title,
+					value: result.value,
+					_id: result._id,
+					owner: result.owner,
+					request: {
+						type: "GET",
+						url: "http://localhost:3000/products/" + result._id,
+					},
+				},
 			});
-		}
-	} catch (err) {
-		return res.status(500).json({ message: err.message });
-	}
+		})
+		.catch((err) => {
+			console.log(err);
+			res.status(500).json({
+				error: err,
+			});
+		});
+});
 
-	res.notes = notes;
-	next();
-}
+//get all notes
+
+router.get("/:userID", checkAuth, (req, res, next) => {
+	Note.find({ owner: req.params.userID }).then((allUserNotes) => {
+		console.log(allUserNotes);
+		res.status(200).send(allUserNotes);
+	});
+});
+
+//get one note
+
+router.get("/:userID/:noteID", checkAuth, (req, res, next) => {
+	Note.find({ owner: req.params.userID, _id: req.params.noteID }).then(
+		(singleNote) => {
+			res.status(200).send(singleNote);
+		}
+	);
+});
+
+//update note
+
+router.patch("/:userID/:noteID", checkAuth, async (req, res, next) => {
+	const id = req.params.noteID;
+	const owner = req.params.userID;
+
+	await Note.findOneAndUpdate({ _id: id, owner: owner }, req.body, {
+		useFindAndModify: false,
+		new: true,
+	}).then((result) => {
+		res.send(result);
+	});
+
+	// await Note.findByIdAndUpdate(id, req.body).then((result) => {
+	// 	res.status(200).send(result);
+	// });
+});
+
+router.delete("/:userID/:noteID", checkAuth, (req, res, next) => {
+	const id = req.params.noteID;
+	Note.findByIdAndDelete(id)
+		.then((note) => {
+			res.send(note);
+		})
+		.catch((err) => {
+			console.log(err);
+			res.status(500).json({
+				error: err,
+			});
+		});
+});
 
 module.exports = router;
