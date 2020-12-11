@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -9,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 const url = process.env.MONGODB_URI || "mongodb://localhost:27017/notes";
 
 app.use(cors());
-app.use(morgan("common"));
+app.use(morgan("dev"));
 
 mongoose.connect(url, {
 	useNewUrlParser: true,
